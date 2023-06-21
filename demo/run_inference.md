@@ -50,3 +50,4 @@ python demo_web.py \
 --checkpoint /path/to/model \
 --classifier_url "http://127.0.0.1:9098/check_hunyin"
 ```
+或者使用[nginx配置反向代理](./nginx_proxy.md)。
