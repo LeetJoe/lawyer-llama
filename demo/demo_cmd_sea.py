@@ -5,6 +5,9 @@ from transformers import LlamaForCausalLM, LlamaTokenizer, TextIteratorStreamer
 import torch
 import argparse
 
+from elasticsearch import Elasticsearch
+from config import es as esconf
+
 
 def json_send(url, data=None, method="POST"):
     headers = {"Content-type": "application/json",
@@ -19,6 +22,40 @@ def json_send(url, data=None, method="POST"):
     return json.loads(response.text)
 
 
+def json_send_sea(es, prompt):
+    resp = es.search(
+        index='elasicsearch-kg-test',
+        size=20,
+        query={
+            "function_score": {
+                "query": {
+                    "bool": {
+                        "must": {
+                            "combined_fields": {
+                                "query": prompt,
+                                "fields": ["from", "to"] # relation使用的keyword，无法用，todo 后面改成text吧。
+                            }
+                        }
+                    }
+                },
+                "min_score": 8
+            }
+        },
+        filter_path=[
+            'hits.hits._score',
+            'hits.hits._source.from',
+            'hits.hits._source.relation',
+            'hits.hits._source.to',
+        ]
+    )
+
+    if not 'hits' in resp.keys():
+        return []
+    if not 'hits' in resp['hits'].keys():
+        return []
+    return [hit['_source']['from'] + hit['_source']['relation'] + hit['_source']['to'] for hit in resp['hits']['hits']]
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=str, default="")
@@ -28,6 +65,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     checkpoint = args.checkpoint
     classifier_url = args.classifier_url
+
+    es = Elasticsearch(
+        esconf['host'],
+        basic_auth=(esconf['username'], esconf['password'])
+    )
 
     print("Loading model...")
     tokenizer = LlamaTokenizer.from_pretrained(checkpoint)
@@ -59,17 +101,16 @@ if __name__ == "__main__":
         else:
             input_to_classifier = current_user_input
         data = {"input": input_to_classifier}
-        result = json_send(classifier_url, data, method="POST")
-        retrieve_output = result['output']
+        retrieve_output = json_send_sea(es, input_to_classifier)
 
         # 构造输入
         if len(retrieve_output) == 0:
-            input_text = "你是人工智能法律助手“Lawyer LLaMA”，能够回答与中国法律相关的问题。\n"
+            input_text = "你是人工智能法律助手“Lawyer LLaMA”，能够回答与中国海洋法律相关的问题。\n"
             for history_pair in chat_history[:-1]:
                 input_text += f"### Human: {history_pair[0]}\n### Assistant: {history_pair[1]}\n"
             input_text += f"### Human: {current_user_input}\n### Assistant: "
         else:
-            input_text = f"你是人工智能法律助手“Lawyer LLaMA”，能够回答与中国法律相关的问题。请参考给出的\"参考法条\"，回复用户的咨询问题。\"参考法条\"中可能存在与咨询无关的法条，请回复时不要引用这些无关的法条。\n"
+            input_text = f"你是人工智能法律助手“Lawyer LLaMA”，能够回答与中国海洋法律相关的问题。请参考给出的\"参考知识\"，回复用户的咨询问题。\"参考知识\"中可能存在与咨询无关的知识，请回复时不要引用这些无关的知识。\n"
             for history_pair in chat_history[:-1]:
                 input_text += f"### Human: {history_pair[0]}\n### Assistant: {history_pair[1]}\n"
             input_text += f"### Human: {current_user_input}\n### 参考法条: {retrieve_output[0]['text']}\n{retrieve_output[1]['text']}\n{retrieve_output[2]['text']}\n### Assistant: "
