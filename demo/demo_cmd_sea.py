@@ -25,7 +25,7 @@ def json_send(url, data=None, method="POST"):
 def json_send_sea(es, prompt):
     resp = es.search(
         index=esconf['index'],
-        size=3,
+        size=60,
         query={
             "function_score": {
                 "query": {
@@ -114,7 +114,14 @@ if __name__ == "__main__":
             input_text = f"你是人工智能法律助手“Lawyer LLaMA”，能够回答与中国海洋法律相关的问题。请参考给出的\"参考知识\"，回复用户的咨询问题。\"参考知识\"中可能存在与咨询无关的知识，请回复时不要引用这些无关的知识。\n"
             for history_pair in chat_history[:-1]:
                 input_text += f"### Human: {history_pair[0]}\n### Assistant: {history_pair[1]}\n"
-            input_text += f"### Human: {current_user_input}\n### 参考知识: {retrieve_output[0]}\n{retrieve_output[1]}\n{retrieve_output[2]}\n### Assistant: "
+
+            input_text += f"### Human: {current_user_input}\n### 参考知识: "
+            for output_item in retrieve_output:
+                input_text += f"{output_item}\n"
+            input_text += f"### Assistant: "
+
+        # print(input_text)
+        # print()
 
         input_ids = tokenizer(input_text, return_tensors="pt").input_ids.to("cuda")
         outputs = model.generate(input_ids, max_new_tokens=400, do_sample=False, repetition_penalty=1.1)
