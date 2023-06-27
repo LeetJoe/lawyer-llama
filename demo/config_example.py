@@ -2,7 +2,8 @@
 es = {
     'host' : 'http://127.0.0.1:9200',
     'username': 'elastic',
-    'password': '123456'
+    'password': '123456',
+    'index': 'elasicsearch-kg-test'
 }
 
 appsearch = {

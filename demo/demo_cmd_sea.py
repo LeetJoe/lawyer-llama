@@ -24,8 +24,8 @@ def json_send(url, data=None, method="POST"):
 
 def json_send_sea(es, prompt):
     resp = es.search(
-        index='elasicsearch-kg-test',
-        size=20,
+        index=esconf['index'],
+        size=3,
         query={
             "function_score": {
                 "query": {
