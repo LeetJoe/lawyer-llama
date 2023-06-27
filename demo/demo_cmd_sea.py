@@ -33,8 +33,7 @@ def json_send_sea(es, prompt):
                         "must": {
                             "combined_fields": {
                                 "query": prompt,
-                                # "fields": ["from", "to"] # relation使用的keyword
-                                "fields": ["from", "relation", "to"] # relation使用的keyword
+                                "fields": ["from", "relation", "to"]
                             }
                         }
                     }
@@ -60,12 +59,12 @@ def json_send_sea(es, prompt):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=str, default="")
-    parser.add_argument("--classifier_url", type=str, default="")
+
     parser.add_argument("--load_in_8bit", action="store_true")
     parser.add_argument("--use_chat_mode", action="store_true")
     args = parser.parse_args()
     checkpoint = args.checkpoint
-    classifier_url = args.classifier_url
+
 
     es = Elasticsearch(
         esconf['host'],
