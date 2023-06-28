@@ -39,7 +39,7 @@ def json_send(url, data=None, method="POST"):
 def json_send_sea(es, prompt):
     resp = es.search(
         index=esconf['index'],
-        size=10,
+        size=6,
         query={
             "function_score": {
                 "query": {
@@ -47,9 +47,16 @@ def json_send_sea(es, prompt):
                         "must": {
                             "combined_fields": {
                                 "query": prompt,
-                                "fields": ["from", "relation", "to"]
+                                "fields": ["relation^10", "from", "to"]
                             }
-                        }
+                        },
+                        "should": [
+                            {
+                                "match": {
+                                    "relation": prompt
+                                }
+                            }
+                        ]
                     }
                 },
                 "min_score": 20
