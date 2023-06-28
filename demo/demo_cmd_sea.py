@@ -38,7 +38,7 @@ def json_send_sea(es, prompt):
                         }
                     }
                 },
-                "min_score": 8
+                "min_score": 20
             }
         },
         filter_path=[
