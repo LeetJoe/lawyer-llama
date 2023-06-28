@@ -52,7 +52,7 @@ def json_send_sea(es, prompt):
                         }
                     }
                 },
-                "min_score": 8
+                "min_score": 20
             }
         },
         filter_path=[
@@ -138,7 +138,9 @@ if __name__ == "__main__":
             print("input_text: ", input_text)
 
             print("=== knowledge retrieved ===")
+            knowledge_txt=""
             for output_item in retrieve_output:
+                knowledge_txt += f"{output_item}\n"
                 print(output_item)
 
             inputs = tokenizer(input_text, return_tensors="pt").to("cuda")
@@ -152,6 +154,7 @@ if __name__ == "__main__":
 
             # 开始流式生成
             chat_history[-1][1] = ""
+            chat_history[-1][1] += "参考知识：\n" + knowledge_txt + "\n"
             for new_text in streamer:
                 chat_history[-1][1] += new_text
                 yield chat_history
