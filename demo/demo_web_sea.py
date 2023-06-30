@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
             # 开始流式生成
             chat_history[-1][1] = ""
-            chat_history[-1][1] += "参考知识：\n" + knowledge_txt + "\n"
+            chat_history[-1][1] += "参考知识：\n" + (knowledge_txt + "\n" if len(knowledge_txt)>0 else "(未找到匹配的知识)\n")
             for new_text in streamer:
                 chat_history[-1][1] += new_text
                 yield chat_history
