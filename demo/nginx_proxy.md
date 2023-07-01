@@ -54,7 +54,12 @@ events {
 
 http {
     include       mime.types; 
-    default_type  application/octet-stream; 
+    default_type  application/octet-stream;
+
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        '' close;
+    }
 
     log_format  main  '$remote_addr - $remote_user [$time_local] "$request" ' 
                       '$status $body_bytes_sent "$http_referer" ' 
